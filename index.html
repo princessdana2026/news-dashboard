@@ -2,152 +2,387 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>新闻仪表盘</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日新闻 · 国际国内科技心理</title>
     <style>
-        body {font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; margin:0; padding:0; background:#f5f5f5;}
-        header {background:#0066cc; color:#fff; padding:20px; text-align:center;}
-        h1 {margin:0; font-size:2rem;}
-        .container {display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; padding:20px;}
-        .card {background:#fff; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,.1); overflow:hidden;}
-        .card-header {background:#0066cc; color:#fff; padding:10px 15px; font-size:1.2rem;}
-        .card-body {padding:15px; max-height:500px; overflow-y:auto;}
-        .news-item {margin-bottom:15px; border-bottom:1px solid #e0e0e0; padding-bottom:10px;}
-        .news-item:last-child {border:none; margin-bottom:0;}
-        .news-title {font-weight:bold; font-size:1rem; color:#0066cc; text-decoration:none;}
-        .news-title:hover {text-decoration:underline;}
-        .news-meta {font-size:.85rem; color:#777; margin-top:5px;}
-        .refresh-btn {background:#0066cc; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer; font-size:.9rem;}
-        .refresh-btn:hover {background:#004c99;}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Microsoft YaHei', 'PingFang SC', Helvetica, Arial, sans-serif; 
+            background: #f0f2f5; 
+            padding: 25px; 
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h1 { 
+            color: #1e3c72; 
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .subhead {
+            color: #6c757d;
+            font-size: 15px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 15px;
+            margin-top: 5px;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); 
+            gap: 25px; 
+            max-width: 1800px; 
+            margin: 0 auto; 
+        }
+        .card { 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            overflow: hidden; 
+            border: 1px solid #edf2f7;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .card-header { 
+            background: linear-gradient(145deg, #1e3c72, #2a4a7a); 
+            color: white; 
+            padding: 18px 20px; 
+            font-size: 19px; 
+            font-weight: 600; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            letter-spacing: 0.5px;
+        }
+        .card-header button { 
+            background: rgba(255,255,255,0.18); 
+            border: 1px solid rgba(255,255,255,0.25); 
+            color: white; 
+            padding: 6px 16px; 
+            border-radius: 40px; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: 500;
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .card-header button:hover { 
+            background: rgba(255,255,255,0.3); 
+            border-color: rgba(255,255,255,0.5);
+        }
+        .card-body { 
+            padding: 20px; 
+            height: 500px; 
+            overflow-y: auto; 
+            background: #fafcff;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f1f5f9;
+        }
+        .card-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .card-body::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+        .news-item { 
+            margin-bottom: 22px; 
+            border-bottom: 1px solid #eef2f6; 
+            padding-bottom: 18px; 
+        }
+        .news-item:last-child { 
+            border-bottom: none; 
+            margin-bottom: 0; 
+            padding-bottom: 0; 
+        }
+        .news-title { 
+            font-weight: 600; 
+            color: #1a3a5f; 
+            text-decoration: none; 
+            font-size: 16px; 
+            line-height: 1.5; 
+            display: block;
+            transition: color 0.15s;
+        }
+        .news-title:hover { 
+            color: #0066cc; 
+            text-decoration: underline; 
+        }
+        .news-meta { 
+            font-size: 12.5px; 
+            color: #5a6874; 
+            margin-top: 10px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            flex-wrap: wrap;
+        }
+        .source-tag { 
+            background: #e9f0fa; 
+            color: #1e3c72; 
+            padding: 4px 14px; 
+            border-radius: 30px; 
+            font-size: 11.5px; 
+            font-weight: 600; 
+            letter-spacing: 0.3px;
+        }
+        .error-msg, .loading { 
+            color: #5a6874; 
+            background: #f8fafc; 
+            padding: 18px; 
+            border-radius: 14px; 
+            text-align: center; 
+            font-size: 14px; 
+            border: 1px dashed #cbd5e0;
+        }
+        .loading {
+            color: #1e3c72;
+            background: #f0f7ff;
+        }
+        .feed-source-badge {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #dce3eb;
+            font-size: 12px;
+            color: #4a5c6b;
+        }
+        .feed-item {
+            background: #f0f4fa;
+            padding: 4px 12px;
+            border-radius: 30px;
+            color: #2c3e50;
+            font-size: 11px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
-<header>
-    <h1>新闻仪表盘</h1>
-</header>
+    <div class="header">
+        <h1>📰 每日新闻 · 全源聚合</h1>
+        <div class="subhead">人民网 · 新华社 · 澎湃 · 36氪 · 虎嗅 · 中科院心理所 · 联合国中文网</div>
+    </div>
+    <div class="grid" id="app"></div>
 
-<div class="container">
-    <!-- 国内新闻 -->
-    <section class="card" id="domestic-card">
-        <div class="card-header">
-            国内新闻
-            <button class="refresh-btn" onclick="loadFeed('domestic')">刷新</button>
-        </div>
-        <div class="card-body" id="domestic-body"></div>
-    </section>
+    <script>
+        // ---------- ✅ 四大板块 · 全部你要求的新闻源 ----------
+        const SECTIONS = [
+            {
+                id: 'domestic',
+                name: '🇨🇳 国内·时政',
+                description: '人民网 + 新华社 + 澎湃',
+                feeds: [
+                    { name: '人民网', url: 'http://www.people.com.cn/rss/politics.xml' },
+                    { name: '新华社', url: 'http://www.xinhuanet.com/rss/china.xml' },
+                    { name: '澎湃新闻', url: 'https://www.thepaper.cn/www/rss/breakingNews.xml' }
+                ],
+                dateOptions: { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }
+            },
+            {
+                id: 'tech',
+                name: '💻 科技·商业',
+                description: '36氪 + 虎嗅网',
+                feeds: [
+                    { name: '36氪', url: 'https://36kr.com/feed' },
+                    { name: '虎嗅网', url: 'https://www.huxiu.com/rss/0.xml' }
+                ],
+                dateOptions: { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }
+            },
+            {
+                id: 'psych',
+                name: '🧠 心理·认知',
+                description: '中科院心理所 · 官方资讯',
+                feeds: [
+                    { name: '中科院心理所', url: 'http://www.psych.cas.cn/rcjy/xsxx/rss.xml' }
+                ],
+                dateOptions: { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }
+            },
+            {
+                id: 'intl',
+                name: '🌍 国际·全球',
+                description: '联合国新闻 · 中文版',
+                feeds: [
+                    { name: '联合国新闻', url: 'https://news.un.org/feed/subscribe/zh/news/all/rss.xml' }
+                ],
+                dateOptions: { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }
+            }
+        ];
 
-    <!-- 科技新闻 -->
-    <section class="card" id="tech-card">
-        <div class="card-header">
-            科技新闻
-            <button class="refresh-btn" onclick="loadFeed('tech')">刷新</button>
-        </div>
-        <div class="card-body" id="tech-body"></div>
-    </section>
+        // ---------- 代理服务（解决跨域）----------
+        const PROXY = 'https://api.allorigins.win/get?url=';
 
-    <!-- 心理新闻 -->
-    <section class="card" id="psych-card">
-        <div class="card-header">
-            心理健康
-            <button class="refresh-btn" onclick="loadFeed('psych')">刷新</button>
-        </div>
-        <div class="card-body" id="psych-body"></div>
-    </section>
+        // ---------- 抓取RSS并解析 ----------
+        async function fetchRSS(feedUrl) {
+            try {
+                const response = await fetch(PROXY + encodeURIComponent(feedUrl));
+                const data = await response.json();
+                const parser = new DOMParser();
+                return parser.parseFromString(data.contents, 'text/xml');
+            } catch (e) {
+                console.error('❌ 抓取失败:', feedUrl, e);
+                return null;
+            }
+        }
 
-    <!-- 国际新闻 -->
-    <section class="card" id="intl-card">
-        <div class="card-header">
-            国际新闻（联合国中文站）
-            <button class="refresh-btn" onclick="loadFeed('intl')">刷新</button>
-        </div>
-        <div class="card-body" id="intl-body"></div>
-    </section>
-</div>
+        // ---------- 从XML提取条目 ----------
+        function parseItems(xml, maxItems = 10) {
+            if (!xml) return [];
+            const items = Array.from(xml.querySelectorAll('item')).slice(0, maxItems);
+            return items.map(item => ({
+                title: item.querySelector('title')?.textContent?.trim() || '无标题',
+                link: item.querySelector('link')?.textContent?.trim() || '#',
+                pubDate: item.querySelector('pubDate')?.textContent || item.querySelector('dc:date')?.textContent || '',
+                description: item.querySelector('description')?.textContent?.replace(/<[^>]*>/g, '').slice(0, 60) || ''
+            }));
+        }
 
-<script>
-/* ---------- RSS 源配置 ---------- */
-const RSS_FEEDS = {
-    domestic: {
-        // 新华社国内新闻
-        url: 'http://www.xinhuanet.com/rss/china.xml',
-        // 中文日期格式
-        dateOptions: {year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}
-    },
-    tech: {
-        // 搜狐科技新闻
-        url: 'http://news.sohu.com/rss/tech.xml',
-        dateOptions: {year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}
-    },
-    psych: {
-        // 搜狐心理健康（如果该分类不存在，可换成其他中文心理频道）
-        url: 'http://news.sohu.com/rss/psychology.xml',
-        dateOptions: {year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}
-    },
-    intl: {
-        // 联合国中文站 RSS
-        url: 'https://news.un.org/rss/chinese',
-        dateOptions: {year:'numeric', month:'numeric', day:'numeric', hour:'numeric', minute:'numeric'}
-    }
-};
+        // ---------- 加载单个板块（合并多个feed）----------
+        async function loadSection(section) {
+            const bodyEl = document.getElementById(`body-${section.id}`);
+            if (bodyEl) {
+                bodyEl.innerHTML = `<div class="loading">⏳ 正在为您聚合 ${section.feeds.length} 个新闻源...</div>`;
+            }
 
-/* ---------- 获取并解析 RSS ---------- */
-async function fetchRSS(feedUrl) {
-    const proxy = 'https://api.allorigins.win/get?url=';
-    const response = await fetch(proxy + encodeURIComponent(feedUrl));
-    const data = await response.json();
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(data.contents, "application/xml");
-    return xml;
-}
+            let allItems = [];
+            
+            // 并发抓取该板块下的所有RSS源
+            const feedPromises = section.feeds.map(async (feed) => {
+                const xml = await fetchRSS(feed.url);
+                const items = parseItems(xml, 8);  // 每个源取8条
+                items.forEach(item => { 
+                    item.sourceName = feed.name; 
+                });
+                return items;
+            });
 
-/* ---------- 渲染新闻 ---------- */
-function renderItems(items, containerId, dateOptions) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = ''; // 清空旧内容
+            const results = await Promise.allSettled(feedPromises);
+            results.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    allItems = allItems.concat(result.value);
+                }
+            });
 
-    if (!items || items.length === 0) {
-        container.innerHTML = '<p>暂无新闻</p>';
-        return;
-    }
+            // 去重（简单去重：相同标题只保留一条）
+            const uniqueTitles = new Set();
+            const uniqueItems = [];
+            allItems.forEach(item => {
+                if (!uniqueTitles.has(item.title) && item.title !== '无标题') {
+                    uniqueTitles.add(item.title);
+                    uniqueItems.push(item);
+                }
+            });
 
-    items.forEach(item => {
-        const title = item.querySelector('title')?.textContent ?? '（无标题）';
-        const link = item.querySelector('link')?.textContent ?? '#';
-        const pubDate = item.querySelector('pubDate')?.textContent ?? '';
-        const description = item.querySelector('description')?.textContent ?? '';
+            // 按时间排序（最新的在前面）
+            uniqueItems.sort((a, b) => {
+                const dateA = new Date(a.pubDate || 0);
+                const dateB = new Date(b.pubDate || 0);
+                return dateB - dateA;
+            });
 
-        // 日期转为中文格式
-        const date = pubDate ? new Date(pubDate).toLocaleString('zh-CN', dateOptions) : '';
+            // 取前15条
+            renderSection(section, uniqueItems.slice(0, 15));
+        }
 
-        const newsDiv = document.createElement('div');
-        newsDiv.className = 'news-item';
-        newsDiv.innerHTML = `
-            <a class="news-title" href="${link}" target="_blank" rel="noopener">${title}</a>
-            <div class="news-meta">${date}</div>
-            <div class="news-desc">${description}</div>
-        `;
-        container.appendChild(newsDiv);
-    });
-}
+        // ---------- 渲染板块 ----------
+        function renderSection(section, items) {
+            const card = document.getElementById(`card-${section.id}`);
+            if (!card) return;
+            
+            const bodyEl = document.getElementById(`body-${section.id}`);
+            
+            let html = '';
+            
+            // 显示本板块包含的新闻源
+            html += `<div class="feed-source-badge">`;
+            section.feeds.forEach(feed => {
+                html += `<span class="feed-item">📌 ${feed.name}</span>`;
+            });
+            html += `</div>`;
 
-/* ---------- 加载指定板块 ---------- */
-async function loadFeed(section) {
-    const feedInfo = RSS_FEEDS[section];
-    if (!feedInfo) return;
+            if (items.length === 0) {
+                html += `<div class="error-msg">
+                            ⚠️ 暂无新闻，请点击上方「刷新」按钮重试
+                        </div>`;
+            } else {
+                items.forEach(item => {
+                    let date = '时间未知';
+                    if (item.pubDate) {
+                        try {
+                            const d = new Date(item.pubDate);
+                            date = d.toLocaleString('zh-CN', section.dateOptions);
+                        } catch (e) {}
+                    }
+                    
+                    html += `
+                        <div class="news-item">
+                            <a class="news-title" href="${item.link}" target="_blank" rel="noopener noreferrer">
+                                ${item.title}
+                            </a>
+                            <div class="news-meta">
+                                <span class="source-tag">${item.sourceName || section.feeds[0].name}</span>
+                                <span>🕒 ${date}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            bodyEl.innerHTML = html;
+        }
 
-    try {
-        const xml = await fetchRSS(feedInfo.url);
-        const items = Array.from(xml.querySelectorAll('item')).slice(0, 10); // 只取前 10 条
-        renderItems(items, `${section}-body`, feedInfo.dateOptions);
-    } catch (e) {
-        console.error(e);
-        document.getElementById(`${section}-body`).innerHTML = '<p>加载失败，请稍后重试</p>';
-    }
-}
+        // ---------- 全局刷新函数 ----------
+        window.refreshSection = async function(sectionId) {
+            const section = SECTIONS.find(s => s.id === sectionId);
+            if (section) {
+                await loadSection(section);
+            }
+        };
 
-/* ---------- 页面加载完成后自动刷新所有板块 ---------- */
-window.addEventListener('DOMContentLoaded', () => {
-    ['domestic', 'tech', 'psych', 'intl'].forEach(section => loadFeed(section));
-});
-</script>
+        // ---------- 初始化页面：构建卡片并加载数据 ----------
+        window.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('app');
+            container.innerHTML = '';
+
+            // 创建四个卡片框架
+            SECTIONS.forEach(section => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.id = `card-${section.id}`;
+                
+                // 头部（带刷新按钮）
+                const header = document.createElement('div');
+                header.className = 'card-header';
+                header.innerHTML = `
+                    <span>${section.name}</span>
+                    <button onclick="window.refreshSection('${section.id}')">
+                        🔄 刷新
+                    </button>
+                `;
+                
+                // 主体（加载中占位）
+                const body = document.createElement('div');
+                body.className = 'card-body';
+                body.id = `body-${section.id}`;
+                body.innerHTML = `<div class="loading">⏳ 获取新闻中，请稍后...</div>`;
+                
+                card.appendChild(header);
+                card.appendChild(body);
+                container.appendChild(card);
+            });
+
+            // 并行加载所有板块
+            await Promise.all(SECTIONS.map(section => loadSection(section)));
+        });
+    </script>
 </body>
 </html>
