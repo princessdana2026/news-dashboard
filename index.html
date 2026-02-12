@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Morning News Dashboard – 7 AM</title>
+<style>
+  body {font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background:#f4f4f4;}
+  h1 {text-align:center; padding:1rem; background:#222; color:#fff; margin:0;}
+  .grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr)); gap:1rem; padding:1rem;}
+  .col {background:#fff; border-radius:6px; padding:0.8rem; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+  .col h2 {font-size:1.2rem; margin-top:0; border-bottom:2px solid #ddd; padding-bottom:0.4rem;}
+  ul {list-style:none; padding:0; margin:0;}
+  li {margin:0.6rem 0; line-height:1.4;}
+  a {text-decoration:none; color:#0066cc;}
+  a:hover {text-decoration:underline;}
+  .date {font-size:0.85rem; color:#555; display:block; margin-top:0.2rem;}
+</style>
+</head>
+<body>
+<h1>Morning News – 7 AM</h1>
+<div class="grid">
+  <div class="col" id="intl"><h2>International – UN News</h2><ul></ul></div>
+  <div class="col" id="dom"><h2>Domestic – People’s Daily / Xinhua</h2><ul></ul></div>
+  <div class="col" id="tech"><h2>Technology – iResearch + PConline</h2><ul></ul></div>
+  <div class="col" id="psych"><h2>Psychology – CAS + ThePaper</h2><ul></ul></div>
+</div>
+
+<script>
+/* --------------------------------------------------------------
+   CONFIGURATION – RSS feed URLs (public, no API keys needed)
+   -------------------------------------------------------------- */
+const feeds = {
+  // International – UN News (World Highlights)
+  intl: [
+    // UN News – World Highlights (RSS)
+    "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
+  ],
+
+  // Domestic – People’s Daily front page (RSS)  Xinhua (RSS)
+  dom: [
+    // People’s Daily – front page (English)
+    "https://en.people.cn/rss/GB_1.xml",
+    // Xinhua – headline news (English)
+    "http://www.xinhuanet.com/english/rss/world.xml"
+  ],
+
+  // Technology – iResearch (AI, autonomous driving, space, BCI) + PConline
+  tech: [
+    // iResearch – AI & tech news (RSS – you may need to adjust the exact feed)
+    "https://www.iresearch.cn/rss/technology.xml",
+    // PConline – Tech Hotspots (RSS)
+    "https://www.pconline.com.cn/rss/tech.xml"
+  ],
+
+  // Psychology – CAS Institute of Psychology + ThePaper Life Science
+  psych: [
+    // CAS Institute of Psychology – announcements (RSS)
+    "http://psych.cas.cn/rss/psychology.xml",
+    // ThePaper – Life Science (psychology‑related) (RSS)
+    "https://www.thepaper.cn/rss/life.xml"
+  ]
+};
+
+/* --------------------------------------------------------------
+   Helper: fetch RSS → JSON via rss2json.com (free, no key needed)
+   -------------------------------------------------------------- */
+async function fetchFeed(url) {
+  const proxy = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url);
+  const resp = await fetch(proxy);
+  if (!resp.ok) throw new Error(`Failed to fetch ${url}`);
+  const data = await resp.json();
+  if (data.status !== "ok") throw new Error(`RSS error: ${data.message}`);
+  return data.items; // array of {title, pubDate, link, ...}
+}
+
+/* --------------------------------------------------------------
+   Build each column
+   -------------------------------------------------------------- */
+async function buildColumn(colId, feedUrls) {
+  const container = document.querySelector(`#${colId} ul`);
+  let allItems = [];
+
+  // fetch every feed for this column
+  for (const url of feedUrls) {
+    try {
+      const items = await fetchFeed(url);
+      allItems = allItems.concat(items);
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  // sort reverse‑chronological (newest first)
+  allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+  // keep only the most recent 10–15 items (adjust as you like)
+  const maxItems = 15;
+  allItems.slice(0, maxItems).forEach(item => {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = item.link;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = item.title;
+    const date = document.createElement("span");
+    date.className = "date";
+    const d = new Date(item.pubDate);
+    date.textContent = d.toLocaleString(undefined,{
+      year:"numeric", month:"short", day:"numeric",
+      hour:"2-digit", minute:"2-digit"
+    });
+    li.appendChild(a);
+    li.appendChild(date);
+    container.appendChild(li);
+  });
+}
+
+/* --------------------------------------------------------------
+   Main – run once on page load
+   -------------------------------------------------------------- */
+async function init() {
+  await Promise.all([
+    buildColumn("intl", feeds.intl),
+    buildColumn("dom",  feeds.dom),
+    buildColumn("tech", feeds.tech),
+    buildColumn("psych",feeds.psych)
+  ]);
+}
+
+/* --------------------------------------------------------------
+   OPTIONAL – Auto‑refresh at 7 AM (client side)
+   -------------------------------------------------------------- */
+function schedule7AMRefresh() {
+  const now = new Date();
+  const next7 = new Date();
+  next7.setHours(7,0,0,0);               // today 07:00
+  if (now >= next7) next7.setDate(next7.getDate()+1); // if past 07:00, tomorrow
+  const msUntil7 = next7 - now;
+  setTimeout(() => {
+    location.reload();                 // reload the page at 07:00
+    schedule7AMRefresh();              // schedule next day again
+  }, msUntil7);
+}
+
+/* --------------------------------------------------------------
+   Kick‑off
+   -------------------------------------------------------------- */
+init().catch(e => console.error(e));
+schedule7AMRefresh();   // comment out if you don’t want auto‑reload
+</script>
+</body>
+</html>
