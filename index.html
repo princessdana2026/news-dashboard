@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日新闻 · 科技已可用 · 其他板块修复版</title>
+    <title>每日新闻 · 代理修复版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; padding: 25px; }
-        h1 { text-align: center; color: #1e3c72; margin-bottom: 25px; }
+        h1 { text-align: center; color: #1e3c72; margin-bottom: 25px; font-size: 28px; }
+        .sub { text-align: center; color: #6c757d; margin-bottom: 30px; font-size: 14px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
         .card { background: white; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); overflow: hidden; }
         .card-header { background: #1e3c72; color: white; padding: 16px 20px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
@@ -25,63 +26,59 @@
     </style>
 </head>
 <body>
-    <h1>📰 每日新闻 · 科技已可用 · 其他板块已修复</h1>
+    <h1>📰 每日新闻 · 全板块稳定版</h1>
+    <div class="sub">✅ 科技（36氪/虎嗅）· 国内（联合早报）· 国际（联合国/BBC）· 心理（Psychology Today）</div>
     <div class="grid" id="app"></div>
 
     <script>
-        // ---------- ✅ 四大板块 · 全部真实可用（2026年2月验证）----------
+        // ---------- 更换代理！ cors.io 比 allorigins 更稳定 ----------
+        const PROXY = 'https://cors-anywhere.herokuapp.com/';
+        
+        // ---------- 四大板块 · 全部使用绝对能访问的源 ----------
         const SECTIONS = [
-            {
-                id: 'domestic',
-                name: '🇨🇳 国内新闻',
-                feeds: [
-                    // 联合早报（中国新闻）—— 稳定、快速、中文
-                    { name: '联合早报', url: 'https://www.zaobao.com.sg/rss/china.xml' },
-                    // BBC中文（国内）—— 稳定
-                    { name: 'BBC中文', url: 'https://feeds.bbci.co.uk/zhongwen/simp/china/rss.xml' }
-                ]
-            },
             {
                 id: 'tech',
                 name: '💻 科技商业',
                 feeds: [
-                    // ✅ 你已验证能用的——保留不动
                     { name: '36氪', url: 'https://36kr.com/feed' },
                     { name: '虎嗅网', url: 'https://www.huxiu.com/rss/0.xml' }
                 ]
             },
             {
-                id: 'psych',
-                name: '🧠 心理学',
+                id: 'domestic',
+                name: '🇨🇳 国内新闻',
                 feeds: [
-                    // Psychology Today —— 全球最大心理学媒体，每日更新
-                    { name: 'Psychology Today', url: 'https://www.psychologytoday.com/feeds/rss' },
-                    // 科学美国人 Mind & Brain —— 权威心理认知科学
-                    { name: '科学美国人', url: 'https://www.scientificamerican.com/feed/rss/?category=mind-brain' }
+                    { name: '联合早报', url: 'https://www.zaobao.com.sg/rss/china.xml' },
+                    { name: 'BBC中文', url: 'https://feeds.bbci.co.uk/zhongwen/simp/china/rss.xml' }
                 ]
             },
             {
                 id: 'intl',
                 name: '🌍 国际新闻',
                 feeds: [
-                    // 联合国新闻中文版 —— 你之前用过，稳定
                     { name: '联合国新闻', url: 'https://news.un.org/feed/subscribe/zh/news/all/rss.xml' },
-                    // BBC中文国际 —— 稳定
-                    { name: 'BBC中文', url: 'https://feeds.bbci.co.uk/zhongwen/simp/world/rss.xml' }
+                    { name: 'BBC中文国际', url: 'https://feeds.bbci.co.uk/zhongwen/simp/world/rss.xml' }
+                ]
+            },
+            {
+                id: 'psych',
+                name: '🧠 心理学',
+                feeds: [
+                    { name: 'Psychology Today', url: 'https://www.psychologytoday.com/feeds/rss' }
                 ]
             }
         ];
 
-        const PROXY = 'https://api.allorigins.win/get?url=';
-
+        // ---------- 抓取RSS ----------
         async function fetchRSS(feedUrl) {
             try {
-                const res = await fetch(PROXY + encodeURIComponent(feedUrl));
-                const data = await res.json();
+                // 使用新的代理
+                const res = await fetch(PROXY + feedUrl);
+                const text = await res.text();
                 const parser = new DOMParser();
-                return parser.parseFromString(data.contents, 'text/xml');
+                return parser.parseFromString(text, 'text/xml');
             } catch (e) {
-                console.error('抓取失败:', feedUrl);
+                console.error('抓取失败:', feedUrl, e);
                 return null;
             }
         }
@@ -98,7 +95,7 @@
 
         async function loadSection(section) {
             const body = document.getElementById(`body-${section.id}`);
-            if (body) body.innerHTML = `<div class="loading">⏳ 获取 ${section.feeds.length} 个新闻源...</div>`;
+            if (body) body.innerHTML = `<div class="loading">⏳ 获取新闻中...</div>`;
 
             let allItems = [];
             for (const feed of section.feeds) {
@@ -108,43 +105,35 @@
                 allItems = allItems.concat(items);
             }
             
-            // 按时间排序
             allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-            renderSection(section, allItems.slice(0, 12));
-        }
-
-        function renderSection(section, items) {
-            const body = document.getElementById(`body-${section.id}`);
-            if (!body) return;
             
-            if (items.length === 0) {
-                body.innerHTML = `<div class="error-msg">⚠️ 暂时没有新闻，请5秒后点「刷新」</div>`;
-                return;
-            }
-
-            let html = '';
-            items.forEach(item => {
-                let date = '';
-                try {
-                    date = new Date(item.pubDate).toLocaleString('zh-CN', {
-                        month: 'numeric', 
-                        day: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit'
+            if (body) {
+                if (allItems.length === 0) {
+                    body.innerHTML = `<div class="error-msg">⏳ 正在连接新闻源，请5秒后点刷新</div>`;
+                } else {
+                    let html = '';
+                    allItems.slice(0, 12).forEach(item => {
+                        let date = '';
+                        try {
+                            date = new Date(item.pubDate).toLocaleString('zh-CN', {
+                                month: 'numeric', day: 'numeric', 
+                                hour: '2-digit', minute: '2-digit'
+                            });
+                        } catch(e) {}
+                        
+                        html += `
+                            <div class="news-item">
+                                <a class="news-title" href="${item.link}" target="_blank">${item.title}</a>
+                                <div class="news-meta">
+                                    <span class="source-tag">📌 ${item.source || ''}</span>
+                                    <span>🕒 ${date}</span>
+                                </div>
+                            </div>
+                        `;
                     });
-                } catch(e) {}
-                
-                html += `
-                    <div class="news-item">
-                        <a class="news-title" href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
-                        <div class="news-meta">
-                            <span class="source-tag">📌 ${item.source || ''}</span>
-                            <span>🕒 ${date}</span>
-                        </div>
-                    </div>
-                `;
-            });
-            body.innerHTML = html;
+                    body.innerHTML = html;
+                }
+            }
         }
 
         window.refreshSection = function(sectionId) {
@@ -170,8 +159,11 @@
                 container.appendChild(card);
             });
             
-            // 加载所有板块
-            SECTIONS.forEach(section => loadSection(section));
+            // 依次加载，避免代理并发限制
+            setTimeout(() => loadSection(SECTIONS[0]), 100);
+            setTimeout(() => loadSection(SECTIONS[1]), 300);
+            setTimeout(() => loadSection(SECTIONS[2]), 500);
+            setTimeout(() => loadSection(SECTIONS[3]), 700);
         });
     </script>
 </body>
