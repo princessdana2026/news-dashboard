@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日新闻 · 代理修复版</title>
+    <title>每日新闻 · 科技实时头条版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; padding: 25px; }
-        h1 { text-align: center; color: #1e3c72; margin-bottom: 25px; font-size: 28px; }
+        h1 { text-align: center; color: #1e3c72; margin-bottom: 10px; font-size: 28px; }
         .sub { text-align: center; color: #6c757d; margin-bottom: 30px; font-size: 14px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 25px; }
         .card { background: white; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); overflow: hidden; }
         .card-header { background: #1e3c72; color: white; padding: 16px 20px; font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
         .card-header button { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 5px 16px; border-radius: 30px; cursor: pointer; }
         .card-header button:hover { background: rgba(255,255,255,0.35); }
-        .card-body { padding: 20px; height: 500px; overflow-y: auto; background: #fafbfc; }
+        .card-body { padding: 20px; height: 600px; overflow-y: auto; background: #fafbfc; }
         .news-item { margin-bottom: 20px; border-bottom: 1px solid #e9ecef; padding-bottom: 15px; }
         .news-item:last-child { border-bottom: none; }
         .news-title { font-weight: 600; color: #1a3a5f; text-decoration: none; font-size: 15px; line-height: 1.5; display: block; }
@@ -26,22 +26,22 @@
     </style>
 </head>
 <body>
-    <h1>📰 每日新闻 · 全板块稳定版</h1>
-    <div class="sub">✅ 科技（36氪/虎嗅）· 国内（联合早报）· 国际（联合国/BBC）· 心理（Psychology Today）</div>
+    <h1>📰 每日新闻 · 科技实时头条</h1>
+    <div class="sub">✅ 科技：鸟哥笔记·开源中国（实时更新） | 国内：联合早报·BBC | 国际：联合国·BBC | 心理：Psychology Today</div>
     <div class="grid" id="app"></div>
 
     <script>
-        // ---------- 更换代理！ cors.io 比 allorigins 更稳定 ----------
+        // ---------- 更换为最稳定的代理 ----------
         const PROXY = 'https://cors-anywhere.herokuapp.com/';
         
-        // ---------- 四大板块 · 全部使用绝对能访问的源 ----------
+        // ---------- 四大板块 · 科技换为实时更新源 ----------
         const SECTIONS = [
             {
                 id: 'tech',
-                name: '💻 科技商业',
+                name: '💻 科技·头条',
                 feeds: [
-                    { name: '36氪', url: 'https://36kr.com/feed' },
-                    { name: '虎嗅网', url: 'https://www.huxiu.com/rss/0.xml' }
+                    { name: '鸟哥笔记', url: 'https://www.niaogebiji.com/feed' },        // 互联网科技，实时更新
+                    { name: '开源中国', url: 'https://www.oschina.net/news/rss' }         // 最新技术动态，每日数十条
                 ]
             },
             {
@@ -69,10 +69,8 @@
             }
         ];
 
-        // ---------- 抓取RSS ----------
         async function fetchRSS(feedUrl) {
             try {
-                // 使用新的代理
                 const res = await fetch(PROXY + feedUrl);
                 const text = await res.text();
                 const parser = new DOMParser();
@@ -83,7 +81,7 @@
             }
         }
 
-        function parseItems(xml, max = 8) {
+        function parseItems(xml, max = 25) {  // 改为最多25条
             if (!xml) return [];
             const items = Array.from(xml.querySelectorAll('item')).slice(0, max);
             return items.map(item => ({
@@ -95,24 +93,25 @@
 
         async function loadSection(section) {
             const body = document.getElementById(`body-${section.id}`);
-            if (body) body.innerHTML = `<div class="loading">⏳ 获取新闻中...</div>`;
+            if (body) body.innerHTML = `<div class="loading">⏳ 获取最新 ${section.feeds.length} 个源...</div>`;
 
             let allItems = [];
             for (const feed of section.feeds) {
                 const xml = await fetchRSS(feed.url);
-                const items = parseItems(xml, 6);
+                const items = parseItems(xml, 20);  // 每个源取20条
                 items.forEach(item => item.source = feed.name);
                 allItems = allItems.concat(items);
             }
             
+            // 按时间排序（最新的在最前面）
             allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
             
             if (body) {
                 if (allItems.length === 0) {
-                    body.innerHTML = `<div class="error-msg">⏳ 正在连接新闻源，请5秒后点刷新</div>`;
+                    body.innerHTML = `<div class="error-msg">⏳ 正在连接新闻源，请点刷新</div>`;
                 } else {
                     let html = '';
-                    allItems.slice(0, 12).forEach(item => {
+                    allItems.slice(0, 20).forEach(item => {  // 显示20条
                         let date = '';
                         try {
                             date = new Date(item.pubDate).toLocaleString('zh-CN', {
@@ -159,7 +158,7 @@
                 container.appendChild(card);
             });
             
-            // 依次加载，避免代理并发限制
+            // 错开加载，避免代理限流
             setTimeout(() => loadSection(SECTIONS[0]), 100);
             setTimeout(() => loadSection(SECTIONS[1]), 300);
             setTimeout(() => loadSection(SECTIONS[2]), 500);
