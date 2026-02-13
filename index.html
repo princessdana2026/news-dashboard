@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日新闻 · 科技实时头条版</title>
+    <title>每日新闻 · 国内直连版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; padding: 25px; }
@@ -26,95 +26,84 @@
     </style>
 </head>
 <body>
-    <h1>📰 每日新闻 · 科技实时头条</h1>
-    <div class="sub">✅ 科技：鸟哥笔记·开源中国（实时更新） | 国内：联合早报·BBC | 国际：联合国·BBC | 心理：Psychology Today</div>
+    <h1>📰 每日新闻 · 国内直连版</h1>
+    <div class="sub">✅ 知乎每日精选 · 无需代理 · 实时更新</div>
     <div class="grid" id="app"></div>
 
     <script>
-        // ---------- 更换为最稳定的代理 ----------
-        const PROXY = 'https://cors-anywhere.herokuapp.com/';
-        
-        // ---------- 四大板块 · 科技换为实时更新源 ----------
+        // ---------- 四大板块 · 全部使用知乎每日精选（国内直连）----------
         const SECTIONS = [
             {
                 id: 'tech',
-                name: '💻 科技·头条',
-                feeds: [
-                    { name: '鸟哥笔记', url: 'https://www.niaogebiji.com/feed' },        // 互联网科技，实时更新
-                    { name: '开源中国', url: 'https://www.oschina.net/news/rss' }         // 最新技术动态，每日数十条
-                ]
+                name: '💻 科技头条',
+                // 知乎「科技」话题每日精选
+                api: 'https://www.zhihu.com/api/v4/topics/19566034/feeds?limit=20',
+                sourceName: '知乎科技'
             },
             {
                 id: 'domestic',
                 name: '🇨🇳 国内新闻',
-                feeds: [
-                    { name: '联合早报', url: 'https://www.zaobao.com.sg/rss/china.xml' },
-                    { name: 'BBC中文', url: 'https://feeds.bbci.co.uk/zhongwen/simp/china/rss.xml' }
-                ]
+                // 知乎「新闻」话题每日精选
+                api: 'https://www.zhihu.com/api/v4/topics/19550517/feeds?limit=20',
+                sourceName: '知乎新闻'
             },
             {
                 id: 'intl',
                 name: '🌍 国际新闻',
-                feeds: [
-                    { name: '联合国新闻', url: 'https://news.un.org/feed/subscribe/zh/news/all/rss.xml' },
-                    { name: 'BBC中文国际', url: 'https://feeds.bbci.co.uk/zhongwen/simp/world/rss.xml' }
-                ]
+                // 知乎「国际」话题每日精选
+                api: 'https://www.zhihu.com/api/v4/topics/19555654/feeds?limit=20',
+                sourceName: '知乎国际'
             },
             {
                 id: 'psych',
                 name: '🧠 心理学',
-                feeds: [
-                    { name: 'Psychology Today', url: 'https://www.psychologytoday.com/feeds/rss' }
-                ]
+                // 知乎「心理学」话题每日精选
+                api: 'https://www.zhihu.com/api/v4/topics/19550731/feeds?limit=20',
+                sourceName: '知乎心理'
             }
         ];
 
-        async function fetchRSS(feedUrl) {
+        // ---------- 直接从知乎API获取数据（国内直连，不需要代理）----------
+        async function fetchZhihu(apiUrl) {
             try {
-                const res = await fetch(PROXY + feedUrl);
-                const text = await res.text();
-                const parser = new DOMParser();
-                return parser.parseFromString(text, 'text/xml');
+                const res = await fetch(apiUrl);
+                const data = await res.json();
+                return data.data || [];
             } catch (e) {
-                console.error('抓取失败:', feedUrl, e);
-                return null;
+                console.error('知乎抓取失败:', e);
+                return [];
             }
         }
 
-        function parseItems(xml, max = 25) {  // 改为最多25条
-            if (!xml) return [];
-            const items = Array.from(xml.querySelectorAll('item')).slice(0, max);
-            return items.map(item => ({
-                title: item.querySelector('title')?.textContent?.trim() || '无标题',
-                link: item.querySelector('link')?.textContent?.trim() || '#',
-                pubDate: item.querySelector('pubDate')?.textContent || item.querySelector('dc:date')?.textContent || '',
-            }));
+        // ---------- 解析知乎数据为新闻条目 ----------
+        function parseZhihuItems(items, max = 20) {
+            return items.slice(0, max).map(item => {
+                // 知乎API返回的内容结构
+                const target = item.target || {};
+                return {
+                    title: target.title || target.question?.title || '无标题',
+                    link: `https://www.zhihu.com/question/${target.question?.id || target.id}`,
+                    pubDate: item.updated_time || item.created_time || Date.now(),
+                };
+            });
         }
 
         async function loadSection(section) {
             const body = document.getElementById(`body-${section.id}`);
-            if (body) body.innerHTML = `<div class="loading">⏳ 获取最新 ${section.feeds.length} 个源...</div>`;
+            if (body) body.innerHTML = `<div class="loading">⏳ 获取最新 ${section.sourceName} 头条...</div>`;
 
-            let allItems = [];
-            for (const feed of section.feeds) {
-                const xml = await fetchRSS(feed.url);
-                const items = parseItems(xml, 20);  // 每个源取20条
-                items.forEach(item => item.source = feed.name);
-                allItems = allItems.concat(items);
-            }
-            
-            // 按时间排序（最新的在最前面）
-            allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+            const items = await fetchZhihu(section.api);
+            const newsItems = parseZhihuItems(items, 20);
             
             if (body) {
-                if (allItems.length === 0) {
-                    body.innerHTML = `<div class="error-msg">⏳ 正在连接新闻源，请点刷新</div>`;
+                if (newsItems.length === 0) {
+                    body.innerHTML = `<div class="error-msg">⏳ 正在连接，请点刷新</div>`;
                 } else {
                     let html = '';
-                    allItems.slice(0, 20).forEach(item => {  // 显示20条
+                    newsItems.forEach(item => {
                         let date = '';
                         try {
-                            date = new Date(item.pubDate).toLocaleString('zh-CN', {
+                            date = new Date(item.pubDate * 1000).toLocaleString('zh-CN', {
                                 month: 'numeric', day: 'numeric', 
                                 hour: '2-digit', minute: '2-digit'
                             });
@@ -124,7 +113,7 @@
                             <div class="news-item">
                                 <a class="news-title" href="${item.link}" target="_blank">${item.title}</a>
                                 <div class="news-meta">
-                                    <span class="source-tag">📌 ${item.source || ''}</span>
+                                    <span class="source-tag">📌 ${section.sourceName}</span>
                                     <span>🕒 ${date}</span>
                                 </div>
                             </div>
@@ -158,11 +147,8 @@
                 container.appendChild(card);
             });
             
-            // 错开加载，避免代理限流
-            setTimeout(() => loadSection(SECTIONS[0]), 100);
-            setTimeout(() => loadSection(SECTIONS[1]), 300);
-            setTimeout(() => loadSection(SECTIONS[2]), 500);
-            setTimeout(() => loadSection(SECTIONS[3]), 700);
+            // 同时加载所有板块
+            SECTIONS.forEach(section => loadSection(section));
         });
     </script>
 </body>
