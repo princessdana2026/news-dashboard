@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日新闻导航 · 妈妈考研版</title>
+    <title>Dan的每日新闻导航</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -42,7 +42,6 @@
             box-shadow: 0 10px 25px rgba(0,20,40,0.08);
             overflow: hidden;
             border: 1px solid rgba(255,255,255,0.5);
-            backdrop-filter: blur(4px);
         }
         .card-header {
             background: #1e3e5c;
@@ -93,9 +92,6 @@
             color: #1e3e5c;
             font-weight: 500;
         }
-        .time {
-            color: #6f8aa5;
-        }
         .footer {
             max-width: 1400px;
             margin: 40px auto 0;
@@ -105,40 +101,16 @@
             border-top: 1px solid #d8e2ea;
             padding-top: 25px;
         }
-        .note {
-            background: #fff9e6;
-            border-left: 6px solid #e6b422;
-            padding: 18px 22px;
-            margin-bottom: 25px;
-            border-radius: 12px;
-            color: #4a4a4a;
-            font-size: 15px;
-        }
-        .btn {
-            background: #2a6291;
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-left: 15px;
-            transition: 0.2s;
-        }
-        .btn:hover {
-            background: #1a4a6f;
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📰 丽芳的每日新闻 · 直接点击阅读</h1>
-        <div class="sub">👋 妈妈考研加油 · 全是精选正规媒体 · 永不空白</div>
+        <h1>📰 Dan的每日新闻导航</h1>
+        <div class="sub">· 精选正规媒体 · 直接点击阅读 ·</div>
     </div>
 
     <div class="grid">
-        
-        <!-- 国内新闻 · 人民网+新华社+澎湃 直接入口 -->
+        <!-- 国内新闻 -->
         <div class="card">
             <div class="card-header">🇨🇳 国内·时政</div>
             <div class="card-body">
@@ -146,14 +118,14 @@
                     <a class="news-title" href="http://www.people.com.cn/" target="_blank">人民网 · 人民日报电子版</a>
                     <div class="news-meta">
                         <span class="source">人民网</span>
-                        <span class="time">官方 · 实时</span>
+                        <span class="time">官方</span>
                     </div>
                 </div>
                 <div class="news-item">
                     <a class="news-title" href="http://www.xinhuanet.com/" target="_blank">新华社 · 新华网</a>
                     <div class="news-meta">
                         <span class="source">新华社</span>
-                        <span class="time">官方 · 实时</span>
+                        <span class="time">官方</span>
                     </div>
                 </div>
                 <div class="news-item">
@@ -180,7 +152,7 @@
             </div>
         </div>
         
-        <!-- 科技商业 · 36氪+虎嗅+鸟哥笔记+开源中国 直接入口 -->
+        <!-- 科技商业 -->
         <div class="card">
             <div class="card-header">💻 科技·商业</div>
             <div class="card-body">
@@ -188,7 +160,7 @@
                     <a class="news-title" href="https://36kr.com/" target="_blank">36氪 · 最新科技商业头条</a>
                     <div class="news-meta">
                         <span class="source">36氪</span>
-                        <span class="time">实时更新</span>
+                        <span class="time">实时</span>
                     </div>
                 </div>
                 <div class="news-item">
@@ -222,15 +194,15 @@
             </div>
         </div>
         
-        <!-- 心理学考研 · 中科院+壹心理+知乎 -->
+        <!-- 心理学 -->
         <div class="card">
-            <div class="card-header">🧠 心理学·考研</div>
+            <div class="card-header">🧠 心理学</div>
             <div class="card-body">
                 <div class="news-item">
                     <a class="news-title" href="http://www.psych.cas.cn/" target="_blank">中科院心理研究所 · 官网</a>
                     <div class="news-meta">
                         <span class="source">中科院心理所</span>
-                        <span class="time">考研必看</span>
+                        <span class="time">官方</span>
                     </div>
                 </div>
                 <div class="news-item">
@@ -254,17 +226,10 @@
                         <span class="time">英文</span>
                     </div>
                 </div>
-                <div class="news-item">
-                    <a class="news-title" href="https://mp.weixin.qq.com/s?__biz=MzA3NDE4MjE2OA==&mid=2650321234&idx=1&sn=7c8c3e3c3c3c3c3c3c3c3c3c3c3c3c3c" target="_blank">心理学考研 · 历年真题</a>
-                    <div class="news-meta">
-                        <span class="source">考研帮</span>
-                        <span class="time">312统考</span>
-                    </div>
-                </div>
             </div>
         </div>
         
-        <!-- 国际新闻 · 联合国+BBC+联合早报 -->
+        <!-- 国际新闻 -->
         <div class="card">
             <div class="card-header">🌍 国际·全球</div>
             <div class="card-body">
@@ -296,37 +261,12 @@
                         <span class="time">英文</span>
                     </div>
                 </div>
-                <div class="news-item">
-                    <a class="news-title" href="https://www.voachinese.com/" target="_blank">美国之音 · 中文</a>
-                    <div class="news-meta">
-                        <span class="source">VOA</span>
-                        <span class="time">实时</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 考研加油专属板块 -->
-    <div style="max-width:1400px; margin:30px auto 0;">
-        <div style="background: linear-gradient(145deg, #f0f8ff, #e6f0fa); border-radius: 24px; padding: 28px; border: 1px solid #cbe4f0;">
-            <h3 style="color:#1e3e5c; font-size:22px; margin-bottom:18px;">📚 丽芳的心理学考研 · 专属资源</h3>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;">
-                <div><a href="http://www.psych.cas.cn/yjsjy/zs/" style="text-decoration:none; background:white; padding:14px 18px; border-radius:16px; display:block; color:#1e3e5c; font-weight:500; box-shadow:0 4px 10px rgba(0,0,0,0.02);">📖 中科院心理所 · 招生信息</a></div>
-                <div><a href="https://www.chinakaoyan.com/kaoyan/school/schoolid/27.shtml" style="text-decoration:none; background:white; padding:14px 18px; border-radius:16px; display:block; color:#1e3e5c; font-weight:500; box-shadow:0 4px 10px rgba(0,0,0,0.02);">📘 312心理学统考 · 历年真题</a></div>
-                <div><a href="https://www.bilibili.com/video/BV1MZ4y1P7pL" style="text-decoration:none; background:white; padding:14px 18px; border-radius:16px; display:block; color:#1e3e5c; font-weight:500; box-shadow:0 4px 10px rgba(0,0,0,0.02);">🎥 免费心理学考研课程</a></div>
-                <div><a href="https://www.douban.com/group/psychology/" style="text-decoration:none; background:white; padding:14px 18px; border-radius:16px; display:block; color:#1e3e5c; font-weight:500; box-shadow:0 4px 10px rgba(0,0,0,0.02);">👥 豆瓣心理学小组</a></div>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        ⏰ 每天早上7点 · 直接点击标题阅读 · 妈妈考研加油 · 2026金榜题名 🎓
+        ⏰ 每日新闻导航 · Dan
     </div>
-
-    <script>
-        // 完全不需要任何代理和抓取，这就是一个干净清爽的新闻导航页
-        console.log('新闻导航页加载成功！妈妈考研加油！');
-    </script>
 </body>
 </html>
